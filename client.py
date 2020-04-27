@@ -1,4 +1,5 @@
 import requests
+import sys
 
 import utils
 import istio_advisory_parser
@@ -17,15 +18,22 @@ def retrieve_cve_nvd(cve: str):
     print(f"CVE Impact\r\n{body['result']['CVE_Items'][0]['impact']}")
 
 
-if __name__ == '__main__':
+def get_cve_list(istio_version: str):
     advisory_links = istio_advisory_parser.retrieve_istio_sec_advisories()
-    print(f'Advisory links {advisory_links}')
-    applicable_adv = utils.filter_not_applicable_advisories("1.4.6", advisory_links)
-    print(f'Found {len(applicable_adv)} advisories')
+    applicable_adv = utils.filter_not_applicable_advisories(istio_version, advisory_links)
     cves = []
     for adv in applicable_adv:
-        print(f'Advisory {adv}')
         cves.extend(istio_advisory_parser.retrieve_cve_from_advisory_page(adv))
-        print(f'CVEs found {", ".join(cves)}')
+    return cves
+
+
+if __name__ == '__main__':
+
+    if len(sys.argv) != 2:
+        raise ValueError(f'Provide an istio version to check, eg, 1.4.6')
+
+    istio_version = sys.argv[1]
+    cves = get_cve_list(istio_version)
+    print(f'Found cve: {", ".join(cves)}')
     for cve in cves:
         retrieve_cve_nvd(cve)
