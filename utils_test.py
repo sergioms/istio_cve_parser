@@ -60,6 +60,12 @@ class MyTestCase(unittest.TestCase):
     def test_version_range16(self):
         self.assertFalse(utils.is_in_version_range("2.5.0", "1.0 to 1.6.0"))
 
+    def test_version_range_all_releases_neg(self):
+        self.assertFalse(utils.is_in_version_range("2.5.0", "All releases prior to 1.5"))
+
+    def test_version_range_all_releases_pos(self):
+        self.assertTrue(utils.is_in_version_range("1.4.6", "All releases prior to 1.5"))
+
     def test_norm1(self):
         major, minor, build = utils.norm_version('1.0.1')
         self.assertEqual(major, 1)
@@ -83,6 +89,18 @@ class MyTestCase(unittest.TestCase):
 
     def test_norm5(self):
         self.assertRaises(ValueError, utils.norm_version,'v.1')
+
+    def test_norm_all_releases_prior(self):
+        major, minor, build = utils.norm_version('All releases prior')
+        self.assertEqual(major, 0)
+        self.assertEqual(minor, 0)
+        self.assertEqual(build, 0)
+
+    def test_norm_all_releases_prior_non_stripped(self):
+        major, minor, build = utils.norm_version(' All releases prior ')
+        self.assertEqual(major, 0)
+        self.assertEqual(minor, 0)
+        self.assertEqual(build, 0)
 
     def test1(self):
         advisories = utils.filter_not_applicable_advisories('1.0', self.all_advisories)

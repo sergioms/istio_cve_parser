@@ -29,6 +29,12 @@ def norm_version(version: str) -> Tuple[int, int, int]:
     :return: normalized version X.Y.Z as Tuple[X: str, Y: str, Z: str]
     """
 
+    ALL_RELEASES = "all releases prior"
+
+    # handle nasty cases from Istio
+    if version.lower().strip() == ALL_RELEASES:
+        return 0, 0, 0
+
     num_dots = version.count('.')
     if num_dots < 1 or num_dots > 2:
         raise ValueError(f'{version} must contain 1 or 2 dots')
