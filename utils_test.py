@@ -11,6 +11,11 @@ class MyTestCase(unittest.TestCase):
             ('https://istio.io/adv2', ['1.0 to 1.0.8']),
             ('https://istio.io/adv3', ['3.0.4 to 3.0.8', '4.0'])
         ]
+        self.eol_versions = [
+            '1.0',
+            '1.1',
+            '1.3'
+        ]
 
     def test_version_range1(self):
         self.assertTrue(utils.is_in_version_range("1.5", "1.5"))
@@ -101,6 +106,39 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(major, 0)
         self.assertEqual(minor, 0)
         self.assertEqual(build, 0)
+
+    def test_minor_version_included(self):
+        self.assertTrue(utils.minor_version_included('1.5.8', '1.5'))
+
+    def test_minor_version_included_start(self):
+        self.assertTrue(utils.minor_version_included('1.5.0', '1.5'))
+
+    def test_minor_version_included_end(self):
+        self.assertFalse(utils.minor_version_included('1.6.0', '1.5'))
+
+    def test_minor_version_included_major(self):
+        self.assertFalse(utils.minor_version_included('2.5.8', '1.5'))
+
+    def test_supported_version(self):
+        self.assertTrue(utils.is_supported_version('0.5', self.eol_versions))
+
+    def test_supported_version2(self):
+        self.assertTrue(utils.is_supported_version('1.5', self.eol_versions))
+
+    def test_supported_version3(self):
+        self.assertTrue(utils.is_supported_version('2.0', self.eol_versions))
+
+    def test_supported_version4(self):
+        self.assertTrue(utils.is_supported_version('1.2', self.eol_versions))
+
+    def test_supported_version5(self):
+        self.assertTrue(utils.is_supported_version('1.2.3', self.eol_versions))
+
+    def test_unsupported_version(self):
+        self.assertFalse(utils.is_supported_version('1.1.3', self.eol_versions))
+
+    def test_unsupported_version2(self):
+        self.assertFalse(utils.is_supported_version('1.1', self.eol_versions))
 
     def test1(self):
         advisories = utils.filter_not_applicable_advisories('1.0', self.all_advisories)

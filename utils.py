@@ -52,6 +52,22 @@ def norm_version(version: str) -> Tuple[int, int, int]:
     return major, minor, build
 
 
+def is_supported_version(test_version, eol_versions):
+    is_supported = True
+    for eol_version in eol_versions:
+        if minor_version_included(test_version, eol_version):
+            is_supported = False
+            break
+    return is_supported
+
+
+def minor_version_included(test_version, minor_version):
+    t_major, t_minor, t_build = norm_version(test_version)
+    m_major, m_minor, m_build = norm_version(minor_version)
+
+    return (t_major == m_major and t_minor == m_minor)
+
+
 def filter_not_applicable_advisories(version: str, advisories: list) -> List[str]:
     """
     Filters a list of security advisories to return those applicable to the provided version

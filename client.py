@@ -33,7 +33,13 @@ if __name__ == '__main__':
         raise ValueError(f'Provide an istio version to check, eg, 1.4.6')
 
     istio_version = sys.argv[1]
+    eol_versions = istio_advisory_parser.retrieve_istio_unsupported_versions()
+    if not utils.is_supported_version(istio_version, eol_versions):
+        print(f'WARN Version {istio_version} is no longer supported - consider updating to current version')
     cves = get_cve_list(istio_version)
-    print(f'Found cve: {", ".join(cves)}')
-    for cve in cves:
-        retrieve_cve_nvd(cve)
+    if len(cves) < 1:
+        print(f'No CVEs found cve')
+    else:
+        print(f'Found cve: {", ".join(cves)}')
+        for cve in cves:
+            retrieve_cve_nvd(cve)

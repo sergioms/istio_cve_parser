@@ -1,7 +1,29 @@
 from bs4 import BeautifulSoup
 import requests
+import re
+import utils
 
-ISTIO_VULNS_URL = 'https://istio.io/news/security/'
+ISTIO_URL = 'https://istio.io'
+ISTIO_VULNS_URL = f'{ISTIO_URL}/news/security/'
+ISTIO_SUPPORT_URL = f'{ISTIO_URL}/latest/news/support/'
+
+EOL_ANNOUN_PATTERN = 'Support for Istio (.+) has ended'
+
+
+def retrieve_istio_unsupported_versions(html=None):
+    istio_versions_html = html
+    if istio_versions_html is None:
+        istio_versions_html = requests.get(ISTIO_SUPPORT_URL, verify=True).text
+    soup = BeautifulSoup(istio_versions_html, 'html.parser')
+    # rows = soup.find('table').find('tbody').find_all('tr')
+    eol_versions = set([])
+    links = soup.find_all('a')
+    for link in links:
+        x = re.search(EOL_ANNOUN_PATTERN, link.text)
+        if x is not None:
+            version = x.group(1)
+            eol_versions.add(version)
+    return eol_versions
 
 
 def retrieve_istio_sec_advisories(html=None):
@@ -13,8 +35,8 @@ def retrieve_istio_sec_advisories(html=None):
     [(link_to_adv_page, [version_ranges])]
     Eg:
     [
-        ('https://istio.io/news/security/istio-security-2020-004/', ['1.4 to 1.4.6', '1.5']),
-        ('https://istio.io/news/security/istio-security-2020-003/', ['1.4 to 1.4.5'])
+        ('https://istio.io/latest/news/security/istio-security-2020-004/', ['1.4 to 1.4.6', '1.5']),
+        ('https://istio.io/latest/news/security/istio-security-2020-003/', ['1.4 to 1.4.5'])
     ]
     """
     istio_advisories_html = html
@@ -26,6 +48,8 @@ def retrieve_istio_sec_advisories(html=None):
     versions = []
     for row in rows:
         link = row.find('a', href=True)['href']
+        if link.find(ISTIO_URL) < 0:
+            link = f'{ISTIO_URL}{link}'
         affected_versions = row.find_all('td')[2]
         brs = affected_versions.find_all('br')
         for br in brs:
@@ -57,3 +81,6 @@ def retrieve_cve_from_advisory_page(advisory_url, html=None):
             for cve_link in cve_links:
                 cves.append(cve_link.contents[0])
     return cves
+
+
+
